@@ -1,0 +1,766 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>90 Day Challenge</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Inter:wght@400;500;600&display=swap">
+<style>
+/* Layout: one narrow column like a race-day card. A bold "bib" shows the day number, four big tap rows sit below it, then a 90-cell map. A bottom tab bar switches Today / Progress / Share & Backup. */
+:root{
+  --bg:#edf2ef;
+  --surface:#fbfdfc;
+  --ink:#10201b;
+  --muted:#586d65;
+  --line:#cfdad5;
+  --accent:#0e5a46;
+  --accent-ink:#ffffff;
+  --flame:#b86e00;
+  --warn-bg:#fff2d2;
+  --warn-ink:#5a3b00;
+  --danger:#a63a2b;
+  --h0:transparent; --h0i:#586d65;
+  --h1:#cfe6dd; --h1i:#10201b;
+  --h2:#93c6b2; --h2i:#10201b;
+  --h3:#2f8369; --h3i:#ffffff;
+  --h4:#0e5a46; --h4i:#ffffff;
+  --display:'Barlow Condensed','Arial Narrow',Impact,sans-serif;
+  --body:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0c1512; --surface:#141f1b; --ink:#e6f0ec; --muted:#93a8a0; --line:#28392f;
+    --accent:#4fc3a1; --accent-ink:#06231a; --flame:#f0b44a;
+    --warn-bg:#3a2d10; --warn-ink:#f5d58b; --danger:#e8806f;
+    --h0i:#93a8a0;
+    --h1:#1c3f34; --h1i:#e6f0ec; --h2:#2a6a57; --h2i:#e6f0ec;
+    --h3:#3f9c7f; --h3i:#04140e; --h4:#6fd3b2; --h4i:#04140e;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0c1512; --surface:#141f1b; --ink:#e6f0ec; --muted:#93a8a0; --line:#28392f;
+  --accent:#4fc3a1; --accent-ink:#06231a; --flame:#f0b44a;
+  --warn-bg:#3a2d10; --warn-ink:#f5d58b; --danger:#e8806f;
+  --h0i:#93a8a0;
+  --h1:#1c3f34; --h1i:#e6f0ec; --h2:#2a6a57; --h2i:#e6f0ec;
+  --h3:#3f9c7f; --h3i:#04140e; --h4:#6fd3b2; --h4i:#04140e;
+  color-scheme:dark;
+}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  background:var(--bg);color:var(--ink);
+  font:16px/1.5 var(--body);
+  padding-block:16px 112px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+}
+#app{max-width:520px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+#app>*{min-width:0}
+section{display:flex;flex-direction:column;gap:16px}
+section>*{min-width:0}
+h1,h2,h3,p{margin:0}
+h1{font:700 30px/1 var(--display);letter-spacing:.02em;text-transform:uppercase}
+h2{font:700 22px/1.1 var(--display);letter-spacing:.03em;text-transform:uppercase}
+h3{font:600 16px/1.3 var(--body)}
+.eyebrow{font-size:12px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.muted{color:var(--muted);font-size:14px}
+.small{font-size:13px}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+.top{display:flex;flex-direction:column;gap:6px;padding-top:4px}
+
+.btn{
+  min-height:48px;padding:0 18px;border-radius:12px;
+  border:1.5px solid var(--line);background:var(--surface);color:var(--ink);
+  font:600 15px/1 var(--body);cursor:pointer;
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;
+}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.danger{color:var(--danger);border-color:var(--danger)}
+.btn.armed{background:var(--danger);border-color:var(--danger);color:#fff}
+.row{display:flex;flex-wrap:wrap;gap:10px}
+.row>.btn{flex:1 1 150px}
+
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-size:14px;font-weight:600}
+input[type=text],input[type=date],textarea{
+  width:100%;padding:12px 14px;border:1.5px solid var(--line);border-radius:12px;
+  background:var(--bg);color:var(--ink);font:16px/1.4 var(--body);
+}
+textarea{resize:vertical;min-height:84px}
+.err{color:var(--danger);font-size:14px;min-height:20px}
+
+.panel{background:var(--surface);border:1.5px solid var(--line);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:12px}
+
+/* Onboarding */
+.hero{display:flex;flex-direction:column;gap:10px;padding-top:24px}
+.hero .big{font:700 76px/.9 var(--display);letter-spacing:.01em;text-transform:uppercase}
+.hero .big span{color:var(--accent)}
+.rules{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.rules span{font-size:13px;font-weight:600;padding:6px 12px;border-radius:999px;border:1.5px solid var(--line);background:var(--surface)}
+details summary{cursor:pointer;font-weight:600;font-size:15px;padding:6px 0}
+details[open] summary{margin-bottom:8px}
+
+/* Bib */
+.bib{background:var(--accent);color:var(--accent-ink);border-radius:18px;padding:18px 18px 16px;display:flex;flex-direction:column;gap:14px}
+.bib-top{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.bib .lab{font-size:12px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;opacity:.85}
+.bib .num{font:700 84px/.85 var(--display);font-variant-numeric:tabular-nums}
+.bib .of{font:600 24px/1 var(--display);opacity:.8;margin-left:6px}
+.bib-side{text-align:right;display:flex;flex-direction:column;gap:2px;font-size:14px}
+.bib-side b{font-size:18px}
+.segs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.seg{height:8px;border-radius:4px;background:var(--accent-ink);opacity:.28}
+.seg.on{opacity:1}
+.chip{
+  align-self:flex-start;min-height:40px;padding:0 14px;border-radius:999px;border:1.5px solid var(--flame);
+  background:var(--warn-bg);color:var(--warn-ink);font:600 14px/1 var(--body);cursor:pointer;
+}
+
+/* Tasks */
+.tasks{display:flex;flex-direction:column;gap:10px}
+.task{
+  display:flex;align-items:center;gap:14px;width:100%;min-height:68px;padding:14px 16px;
+  border:1.5px solid var(--line);border-radius:14px;background:var(--surface);color:var(--ink);
+  font:inherit;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent;
+}
+.task .box{
+  flex:none;width:30px;height:30px;border-radius:9px;border:2px solid var(--muted);
+  display:grid;place-items:center;color:var(--accent);
+}
+.task .box svg{opacity:0}
+.task .tt{display:flex;flex-direction:column;min-width:0}
+.task .tt b{font-size:18px;font-weight:600;line-height:1.2}
+.task .tt small{font-size:12px;letter-spacing:.08em;text-transform:uppercase;opacity:.75;font-weight:600}
+.task[aria-checked="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.task[aria-checked="true"] .box{background:var(--accent-ink);border-color:var(--accent-ink)}
+.task[aria-checked="true"] .box svg{opacity:1}
+.task:active{transform:scale(.99)}
+
+/* Stats */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stat{display:flex;flex-direction:column;gap:2px;padding:12px;border-radius:14px;border:1.5px solid var(--line);background:var(--surface)}
+.stat .v{font:700 36px/1 var(--display);font-variant-numeric:tabular-nums}
+.stat .k{font-size:12px;color:var(--muted);font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+.stat.flame .v{color:var(--flame)}
+
+/* Map */
+.grid{display:grid;grid-template-columns:repeat(10,1fr);gap:5px}
+.cell{
+  aspect-ratio:1;min-width:0;padding:0;border-radius:8px;border:1.5px solid var(--line);
+  font:600 13px/1 var(--body);font-variant-numeric:tabular-nums;cursor:pointer;display:grid;place-items:center;
+}
+.cell.l0{background:var(--h0);color:var(--h0i)}
+.cell.l1{background:var(--h1);color:var(--h1i);border-color:var(--h1)}
+.cell.l2{background:var(--h2);color:var(--h2i);border-color:var(--h2)}
+.cell.l3{background:var(--h3);color:var(--h3i);border-color:var(--h3)}
+.cell.l4{background:var(--h4);color:var(--h4i);border-color:var(--h4)}
+.cell.fut{opacity:.4;border-style:dashed}
+.cell.now{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--ink)}
+.cell.sel{outline:3px solid var(--flame);outline-offset:1px}
+.legend{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);flex-wrap:wrap}
+.legend i{width:16px;height:16px;border-radius:5px;border:1.5px solid var(--line);display:inline-block}
+.legend i.a{background:var(--h1)}.legend i.b{background:var(--h2)}.legend i.c{background:var(--h3)}.legend i.d{background:var(--h4)}
+
+/* Progress */
+.result{background:var(--surface);border:1.5px solid var(--line);border-radius:18px;padding:18px;display:flex;flex-direction:column;gap:14px}
+.result .pct{font:700 92px/.85 var(--display);font-variant-numeric:tabular-nums;color:var(--accent)}
+.result .pct sup{font-size:36px;vertical-align:top;margin-left:2px}
+.result-row{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.bars{display:flex;flex-direction:column;gap:12px}
+.bar-row{display:grid;grid-template-columns:96px 1fr 56px;gap:10px;align-items:center;font-size:14px}
+.bar-row .n{text-align:right;font-variant-numeric:tabular-nums;color:var(--muted)}
+.track{height:12px;border-radius:6px;background:var(--bg);border:1.5px solid var(--line);overflow:hidden}
+.fill{height:100%;background:var(--accent);border-radius:6px}
+.bar-row.off{opacity:.4}
+
+/* Banners */
+.banners{display:flex;flex-direction:column;gap:10px}
+.banner{background:var(--warn-bg);color:var(--warn-ink);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px;font-size:15px}
+.banner .btn{min-height:44px;align-self:flex-start;background:transparent;border-color:var(--warn-ink);color:var(--warn-ink)}
+
+.steps{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px;font-size:14px;color:var(--muted)}
+.seg-toggle{display:grid;grid-template-columns:1fr 1fr;gap:6px;background:var(--bg);padding:4px;border-radius:12px;border:1.5px solid var(--line)}
+.seg-toggle button{min-height:42px;border:0;border-radius:9px;background:transparent;color:var(--ink);font:600 14px var(--body);cursor:pointer}
+.seg-toggle button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+
+/* Nav */
+.nav{position:fixed;left:0;right:0;bottom:0;z-index:5;background:var(--surface);border-top:1.5px solid var(--line);
+  padding:8px max(16px,env(safe-area-inset-right,0px)) calc(8px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.nav-in{max-width:520px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.nav button{min-height:52px;border:0;border-radius:12px;background:transparent;color:var(--muted);font:600 13px/1.2 var(--body);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}
+.nav button svg{width:22px;height:22px}
+.nav button[aria-current="page"]{background:var(--bg);color:var(--accent)}
+
+.toast{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:9;
+  background:var(--ink);color:var(--bg);padding:12px 18px;border-radius:12px;font-size:14px;font-weight:500;max-width:min(92vw,420px);text-align:center;
+  opacity:0;pointer-events:none}
+.toast.show{opacity:1}
+@media (prefers-reduced-motion: no-preference){
+  .toast{transition:opacity .2s}
+  .task,.seg,.fill{transition:background-color .15s,border-color .15s,opacity .15s,width .3s}
+}
+@media (max-width:360px){
+  .bar-row{grid-template-columns:78px 1fr 48px}
+  .bib .num{font-size:72px}
+}
+</style>
+
+<div id="app">
+
+  <section id="onboard" hidden>
+    <div class="hero">
+      <p class="eyebrow">Your challenge</p>
+      <p class="big">90 <span>days</span></p>
+      <p class="muted">Four things, every day. Tick them off and watch the map fill up.</p>
+      <div class="rules"><span>Morning run</span><span>No sugar</span><span>Read a book</span><span>Evening gym</span></div>
+    </div>
+    <form id="startForm" class="panel" autocomplete="off">
+      <div class="field">
+        <label for="nameIn">Type your name</label>
+        <input type="text" id="nameIn" maxlength="30" placeholder="Your name" autocomplete="given-name">
+      </div>
+      <div class="field">
+        <label for="startIn">Start date</label>
+        <input type="date" id="startIn">
+        <span class="muted small">Day 1 is this date. Pick today to start now.</span>
+      </div>
+      <p class="err" id="startErr" role="alert"></p>
+      <button class="btn primary" type="submit">Start my 90 days</button>
+    </form>
+    <div class="panel">
+      <details>
+        <summary>I already have a backup code</summary>
+        <div class="field">
+          <label for="obRestore">Paste your backup code</label>
+          <textarea id="obRestore" placeholder="90D1:..."></textarea>
+        </div>
+        <p class="err" id="obErr" role="alert"></p>
+        <button class="btn" type="button" id="obRestoreBtn">Restore my data</button>
+      </details>
+    </div>
+  </section>
+
+  <div id="main" hidden>
+    <header class="top">
+      <p class="eyebrow" id="hello"></p>
+      <h1>90 Day Challenge</h1>
+    </header>
+    <div class="banners" id="banner"></div>
+
+    <section id="tab-today">
+      <div class="bib">
+        <div class="bib-top">
+          <div>
+            <p class="lab">Day</p>
+            <p><span class="num" id="bibNum">1</span><span class="of">/ 90</span></p>
+          </div>
+          <div class="bib-side">
+            <span id="bibDate"></span>
+            <b id="bibCount"></b>
+          </div>
+        </div>
+        <div class="segs" id="segs"></div>
+      </div>
+      <button type="button" class="chip" id="editChip" hidden>You are editing another day. Tap to go back to today.</button>
+
+      <div class="tasks" id="tasks" role="group" aria-label="Tasks for this day"></div>
+
+      <div class="field">
+        <label for="note" id="noteLab">Note for this day (optional)</label>
+        <textarea id="note" maxlength="300" placeholder="Distance, book name, how you felt"></textarea>
+      </div>
+
+      <div class="stats">
+        <div class="stat flame"><span class="v" id="sCur">0</span><span class="k">Streak</span></div>
+        <div class="stat"><span class="v" id="sFull">0</span><span class="k">Full days</span></div>
+        <div class="stat"><span class="v" id="sBest">0</span><span class="k">Best streak</span></div>
+      </div>
+
+      <div class="panel">
+        <h2>Your 90 days</h2>
+        <div class="grid" id="grid"></div>
+        <div class="legend"><span>Tasks done:</span><i></i>0<i class="a"></i>1<i class="b"></i>2<i class="c"></i>3<i class="d"></i>4</div>
+        <p class="muted small">Tap a day to fix a day you forgot to tick.</p>
+      </div>
+    </section>
+
+    <section id="tab-progress" hidden>
+      <div class="result">
+        <div class="result-row">
+          <div>
+            <p class="eyebrow" id="rDay"></p>
+            <h2 id="rName"></h2>
+          </div>
+          <p class="pct"><span id="rPct">0</span><sup>%</sup></p>
+        </div>
+        <p class="muted">of all tasks done so far, counting today.</p>
+        <div class="stats">
+          <div class="stat"><span class="v" id="rFull">0</span><span class="k">Full days</span></div>
+          <div class="stat flame"><span class="v" id="rCur">0</span><span class="k">Streak</span></div>
+          <div class="stat"><span class="v" id="rBest">0</span><span class="k">Best</span></div>
+        </div>
+      </div>
+      <div class="panel">
+        <h2>By habit</h2>
+        <div class="bars" id="habits"></div>
+      </div>
+      <div class="panel">
+        <h2>By week</h2>
+        <div class="bars" id="weeks"></div>
+      </div>
+    </section>
+
+    <section id="tab-share" hidden>
+      <div class="panel">
+        <h2>Share your result</h2>
+        <p class="muted">Send it to friends and family at the end of the day.</p>
+        <div class="seg-toggle" role="group" aria-label="What to share">
+          <button type="button" id="modeToday" aria-pressed="true">This day</button>
+          <button type="button" id="modeAll" aria-pressed="false">Overall</button>
+        </div>
+        <label class="small muted" for="shareBox">Message preview</label>
+        <textarea id="shareBox" readonly rows="8"></textarea>
+        <div class="row">
+          <button type="button" class="btn primary" id="shareCopy">Copy message</button>
+          <a class="btn" id="shareWa" target="_blank" rel="noopener">Send on WhatsApp</a>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Weekly backup</h2>
+        <p class="muted" id="backupStatus"></p>
+        <label class="small muted" for="codeBox">Your backup code</label>
+        <textarea id="codeBox" readonly rows="3"></textarea>
+        <div class="row">
+          <button type="button" class="btn primary" id="codeCopy">Copy backup code</button>
+          <a class="btn" id="codeWa" target="_blank" rel="noopener">Send to my WhatsApp</a>
+        </div>
+        <ol class="steps">
+          <li>Tap Copy backup code.</li>
+          <li>Paste it in a free place: WhatsApp "Message yourself", Telegram "Saved Messages", Google Keep or an email draft.</li>
+          <li>Do this every week. Your data is saved only in this browser.</li>
+        </ol>
+      </div>
+
+      <div class="panel">
+        <h2>Restore</h2>
+        <div class="field">
+          <label for="restoreBox">Paste a backup code</label>
+          <textarea id="restoreBox" placeholder="90D1:..."></textarea>
+        </div>
+        <div class="field">
+          <label for="restoreFile">Or choose a text file with the code</label>
+          <input type="file" id="restoreFile" accept=".txt,text/plain">
+        </div>
+        <p class="err" id="restoreErr" role="alert"></p>
+        <button type="button" class="btn" id="restoreBtn">Restore from code</button>
+      </div>
+
+      <div class="panel">
+        <h2>Settings</h2>
+        <div class="field">
+          <label for="renameIn">Your name</label>
+          <input type="text" id="renameIn" maxlength="30">
+        </div>
+        <button type="button" class="btn" id="renameBtn">Save name</button>
+        <button type="button" class="btn danger" id="resetBtn">Start over</button>
+        <p class="muted small">Start over deletes all days from this browser. Copy a backup first.</p>
+      </div>
+    </section>
+  </div>
+
+  <nav class="nav" id="nav" hidden aria-label="Main">
+    <div class="nav-in">
+      <button type="button" data-tab="today" aria-current="page">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="3"/><path d="M8 3v4M16 3v4M8 13l3 3 5-6"/></svg>Today</button>
+      <button type="button" data-tab="progress">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 20V10M12 20V4M19 20v-7"/></svg>Progress</button>
+      <button type="button" data-tab="share">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7.5 8.5L12 4l4.5 4.5M5 14v4a2 2 0 002 2h10a2 2 0 002-2v-4"/></svg>Share &amp; Backup</button>
+    </div>
+  </nav>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+var KEY='ch90.v1', TOTAL=90;
+var TASKS=[
+  {bit:1, label:'Morning run', tag:'Morning',  short:'Morning run'},
+  {bit:2, label:'No sugar',    tag:'All day',  short:'No sugar'},
+  {bit:4, label:'Read a book', tag:'Any time', short:'Reading'},
+  {bit:8, label:'Evening gym', tag:'Evening',  short:'Evening gym'}
+];
+var CHECK='<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+var DAYN=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+var MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+var state=null, sel=1, follow=true, tab='today', noteFor=0, shareMode='today', storageOk=true, toastTimer=null;
+
+function $(id){return document.getElementById(id)}
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+
+/* ---------- storage (every access guarded) ---------- */
+function probe(){
+  try{localStorage.setItem(KEY+'.p','1');localStorage.removeItem(KEY+'.p')}catch(e){storageOk=false}
+}
+function normalize(o){
+  if(!o||typeof o.name!=='string'||!o.name.trim()||!/^\d{4}-\d{2}-\d{2}$/.test(o.start||'')) return null;
+  var days={},notes={},k,n;
+  for(k in (o.days||{})){n=+k;if(n>=1&&n<=TOTAL){var m=(+o.days[k])&15;if(m)days[n]=m}}
+  for(k in (o.notes||{})){n=+k;if(n>=1&&n<=TOTAL&&typeof o.notes[k]==='string'&&o.notes[k])notes[n]=o.notes[k].slice(0,300)}
+  return {v:1,name:o.name.trim().slice(0,30),start:o.start,days:days,notes:notes,
+          lastBackup:(typeof o.lastBackup==='string'&&o.lastBackup)?o.lastBackup:null};
+}
+function load(){
+  var raw=null;
+  try{raw=localStorage.getItem(KEY)}catch(e){storageOk=false}
+  if(!raw)return null;
+  try{return normalize(JSON.parse(raw))}catch(e){return null}
+}
+function save(){
+  try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){if(storageOk){storageOk=false;renderBanner()}}
+}
+
+/* ---------- dates ---------- */
+function pad(n){return n<10?'0'+n:''+n}
+function ymd(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())}
+function parseYmd(s){var p=s.split('-');return new Date(+p[0],+p[1]-1,+p[2])}
+function todayMid(){var n=new Date();return new Date(n.getFullYear(),n.getMonth(),n.getDate())}
+function todayIdx(){var i=Math.round((todayMid()-parseYmd(state.start))/864e5)+1;return i<1?1:i}
+function curDay(){return Math.min(todayIdx(),TOTAL)}
+function dateOf(i){var d=parseYmd(state.start);d.setDate(d.getDate()+i-1);return d}
+function fmtDate(d){return DAYN[d.getDay()]+' '+d.getDate()+' '+MON[d.getMonth()]+' '+d.getFullYear()}
+
+/* ---------- numbers ---------- */
+function bits(m){var c=0;TASKS.forEach(function(k){if(m&k.bit)c++});return c}
+function stats(){
+  var t=curDay(),done=0,full=0,per=[0,0,0,0],best=0,run=0,i;
+  for(i=1;i<=t;i++){
+    var m=state.days[i]|0,c=bits(m);
+    done+=c;
+    TASKS.forEach(function(k,j){if(m&k.bit)per[j]++});
+    if(c===4){full++;run++;if(run>best)best=run}else run=0;
+  }
+  var j=t;
+  if(t===todayIdx()&&(state.days[j]|0)!==15)j--;
+  var cur=0;
+  while(j>=1&&(state.days[j]|0)===15){cur++;j--}
+  return {t:t,done:done,full:full,per:per,cur:cur,best:best,pct:t?Math.round(done*100/(t*4)):0};
+}
+
+/* ---------- backup code ---------- */
+function b64enc(str){
+  var bytes=new TextEncoder().encode(str),bin='';
+  for(var i=0;i<bytes.length;i++)bin+=String.fromCharCode(bytes[i]);
+  return btoa(bin);
+}
+function b64dec(b){
+  var bin=atob(b),bytes=new Uint8Array(bin.length);
+  for(var i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);
+  return new TextDecoder().decode(bytes);
+}
+function makeCode(){
+  var d={},n={},k;
+  for(k in state.days)d[k]=state.days[k];
+  for(k in state.notes)n[k]=state.notes[k];
+  return '90D1:'+b64enc(JSON.stringify({v:1,n:state.name,s:state.start,d:d,t:n}));
+}
+function readCode(str){
+  str=String(str||'');
+  var i=str.indexOf('90D1:');
+  if(i<0)throw new Error('This is not a backup code. It should start with 90D1:');
+  var b=str.slice(i+5).replace(/[^A-Za-z0-9+\/=]/g,'');
+  var o;
+  try{o=JSON.parse(b64dec(b))}catch(e){throw new Error('The code looks cut off. Copy the whole code again.')}
+  var s=normalize({name:o.n,start:o.s,days:o.d,notes:o.t});
+  if(!s)throw new Error('The code has no valid data.');
+  return s;
+}
+
+/* ---------- share text ---------- */
+function shareText(){
+  var s=stats(),L=[],m,i;
+  L.push('90 Day Challenge - '+state.name);
+  if(shareMode==='today'){
+    m=state.days[sel]|0;
+    L.push('Day '+sel+' of 90 ('+fmtDate(dateOf(sel))+')');
+    TASKS.forEach(function(k){L.push(k.label+': '+((m&k.bit)?'Done':'Missed'))});
+    L.push(bits(m)+' of 4 done. Streak: '+s.cur+(s.cur===1?' day':' days'));
+  }else{
+    L.push((todayIdx()>TOTAL?'Finished all 90 days':'Day '+s.t+' of 90'));
+    L.push('Tasks done: '+s.done+' of '+(s.t*4)+' ('+s.pct+'%)');
+    L.push('Full days: '+s.full+'. Streak: '+s.cur+'. Best streak: '+s.best);
+    TASKS.forEach(function(k,j){L.push(k.short+': '+s.per[j]+'/'+s.t)});
+  }
+  return L.join('\n');
+}
+
+/* ---------- toast / copy ---------- */
+function toast(msg){
+  var t=$('toast');t.textContent=msg;t.classList.add('show');
+  clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.classList.remove('show')},2600);
+}
+function copyText(text,ta,okMsg,onOk){
+  function ok(){toast(okMsg);if(onOk)onOk()}
+  function fallback(){
+    try{ta.focus();ta.select();ta.setSelectionRange(0,text.length+5);
+      if(document.execCommand&&document.execCommand('copy')){ok();return}}catch(e){}
+    toast('Press and hold the text, then tap Copy.');
+  }
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    try{navigator.clipboard.writeText(text).then(ok,fallback)}catch(e){fallback()}
+  }else fallback();
+}
+function markBackup(){
+  state.lastBackup=new Date().toISOString();save();renderBackup();renderBanner();
+}
+
+/* two-tap confirm (dialogs are blocked in the viewer) */
+function armed(btn,label,fn){
+  if(btn.dataset.armed){
+    btn.classList.remove('armed');btn.textContent=btn.dataset.label;delete btn.dataset.armed;fn();return;
+  }
+  btn.dataset.armed='1';btn.dataset.label=btn.textContent;btn.textContent=label;btn.classList.add('armed');
+  setTimeout(function(){
+    if(btn.dataset.armed){btn.classList.remove('armed');btn.textContent=btn.dataset.label;delete btn.dataset.armed}
+  },5000);
+}
+
+/* ---------- render ---------- */
+function renderBanner(){
+  var h='';
+  if(!storageOk){
+    h+='<div class="banner"><span>This browser is not saving your data. Copy a backup code now, or you will lose your days when you close the page.</span><button type="button" class="btn" data-go="share">Open backup</button></div>';
+  }
+  if(todayIdx()>TOTAL){
+    h+='<div class="banner"><span>You finished all 90 days, '+esc(state.name)+'. Well done. Share your final result.</span><button type="button" class="btn" data-go="progress">See my result</button></div>';
+  }else if(todayIdx()>=2){
+    var ref=state.lastBackup?new Date(state.lastBackup):parseYmd(state.start);
+    var age=Math.floor((Date.now()-ref.getTime())/864e5);
+    if(age>=7){
+      h+='<div class="banner"><span>Weekly backup is due. It takes about 20 seconds.</span><button type="button" class="btn" data-go="share">Back up now</button></div>';
+    }
+  }
+  $('banner').innerHTML=h;
+}
+
+function renderToday(){
+  var s=stats(),m=state.days[sel]|0,c=bits(m),i;
+  $('hello').textContent='Hello, '+state.name;
+  $('bibNum').textContent=sel;
+  $('bibDate').textContent=fmtDate(dateOf(sel));
+  $('bibCount').textContent=c+' of 4 done';
+  var segs='';for(i=0;i<4;i++)segs+='<span class="seg'+(i<c?' on':'')+'"></span>';
+  $('segs').innerHTML=segs;
+  $('editChip').hidden=(sel===curDay());
+  $('editChip').textContent='You are editing Day '+sel+'. Tap to go back to Day '+curDay()+'.';
+
+  var h='';
+  TASKS.forEach(function(k){
+    var on=(m&k.bit)!==0;
+    h+='<button class="task" type="button" role="checkbox" aria-checked="'+on+'" data-bit="'+k.bit+'">'
+      +'<span class="box">'+CHECK+'</span><span class="tt"><b>'+k.label+'</b><small>'+k.tag+'</small></span></button>';
+  });
+  $('tasks').innerHTML=h;
+
+  $('noteLab').textContent='Note for Day '+sel+' (optional)';
+  if(noteFor!==sel){$('note').value=state.notes[sel]||'';noteFor=sel}
+
+  $('sCur').textContent=s.cur;$('sFull').textContent=s.full;$('sBest').textContent=s.best;
+
+  var g='',now=todayIdx();
+  for(i=1;i<=TOTAL;i++){
+    var cc=bits(state.days[i]|0),fut=i>now;
+    g+='<button type="button" class="cell l'+cc+(fut?' fut':'')+(i===now?' now':'')+(i===sel?' sel':'')+'" data-day="'+i+'" aria-label="Day '+i+', '
+      +(fut?'not started yet':cc+' of 4 done')+'"'+(i===sel?' aria-current="true"':'')+'>'+i+'</button>';
+  }
+  $('grid').innerHTML=g;
+}
+
+function renderProgress(){
+  var s=stats(),i,h='';
+  $('rName').textContent=state.name;
+  $('rDay').textContent=todayIdx()>TOTAL?'Challenge complete':'Day '+s.t+' of 90';
+  $('rPct').textContent=s.pct;
+  $('rFull').textContent=s.full;$('rCur').textContent=s.cur;$('rBest').textContent=s.best;
+  TASKS.forEach(function(k,j){
+    var w=s.t?Math.round(s.per[j]*100/s.t):0;
+    h+='<div class="bar-row"><span>'+k.short+'</span><div class="track" role="img" aria-label="'+k.short+' '+s.per[j]+' of '+s.t+' days"><div class="fill" style="width:'+w+'%"></div></div><span class="n">'+s.per[j]+'/'+s.t+'</span></div>';
+  });
+  $('habits').innerHTML=h;
+  h='';
+  var now=todayIdx();
+  for(var w=0;w<13;w++){
+    var a=w*7+1,b=Math.min(w*7+7,TOTAL),n=b-a+1,done=0,fut=a>now;
+    for(i=a;i<=Math.min(b,now);i++)done+=bits(state.days[i]|0);
+    var max=n*4,pw=fut?0:Math.round(done*100/max);
+    h+='<div class="bar-row'+(fut?' off':'')+'"><span>Week '+(w+1)+'</span><div class="track" role="img" aria-label="Week '+(w+1)+', '+done+' of '+max+' tasks"><div class="fill" style="width:'+pw+'%"></div></div><span class="n">'+done+'/'+max+'</span></div>';
+  }
+  $('weeks').innerHTML=h;
+}
+
+function renderShare(){
+  var text=shareText();
+  $('shareBox').value=text;
+  $('shareWa').href='https://wa.me/?text='+encodeURIComponent(text);
+  $('modeToday').setAttribute('aria-pressed',shareMode==='today');
+  $('modeAll').setAttribute('aria-pressed',shareMode==='all');
+  $('modeToday').textContent='Day '+sel;
+  $('renameIn').value=state.name;
+}
+
+function renderBackup(){
+  var code=makeCode();
+  $('codeBox').value=code;
+  var wa=$('codeWa');
+  if(code.length<6000){wa.href='https://wa.me/?text='+encodeURIComponent(code);wa.hidden=false}
+  else{wa.hidden=true}
+  var st=$('backupStatus');
+  if(state.lastBackup){
+    var d=new Date(state.lastBackup),age=Math.floor((Date.now()-d.getTime())/864e5);
+    st.textContent='Last backup: '+fmtDate(d)+(age>0?' ('+age+(age===1?' day':' days')+' ago).':' (today).');
+  }else st.textContent='No backup yet. Make your first one now.';
+}
+
+function renderAll(){
+  if(!state)return;
+  renderBanner();renderToday();renderProgress();renderShare();renderBackup();
+}
+
+function setTab(t){
+  tab=t;
+  ['today','progress','share'].forEach(function(n){$('tab-'+n).hidden=(n!==t)});
+  var bs=document.querySelectorAll('#nav button');
+  for(var i=0;i<bs.length;i++){
+    if(bs[i].getAttribute('data-tab')===t)bs[i].setAttribute('aria-current','page');
+    else bs[i].removeAttribute('aria-current');
+  }
+  renderAll();
+  window.scrollTo(0,0);
+}
+
+function showOnboard(){
+  $('onboard').hidden=false;$('main').hidden=true;$('nav').hidden=true;
+  $('startIn').value=ymd(todayMid());$('startIn').max=ymd(todayMid());
+}
+function showMain(){
+  $('onboard').hidden=true;$('main').hidden=false;$('nav').hidden=false;
+  sel=curDay();follow=true;noteFor=0;setTab('today');
+}
+
+/* ---------- actions ---------- */
+function applyRestore(code,errEl){
+  try{
+    var s=readCode(code);
+    state=s;state.lastBackup=null;save();
+    errEl.textContent='';
+    showMain();
+    toast('Restored. Welcome back, '+state.name+'.');
+    return true;
+  }catch(e){errEl.textContent=e.message;return false}
+}
+
+function wire(){
+  $('startForm').addEventListener('submit',function(e){
+    e.preventDefault();
+    var name=$('nameIn').value.trim();
+    if(!name){$('startErr').textContent='Please type your name.';$('nameIn').focus();return}
+    var st=$('startIn').value||ymd(todayMid());
+    if(st>ymd(todayMid()))st=ymd(todayMid());
+    $('startErr').textContent='';
+    state={v:1,name:name.slice(0,30),start:st,days:{},notes:{},lastBackup:null};
+    save();showMain();
+    toast('Day 1 starts now. Good luck, '+state.name+'.');
+  });
+  $('obRestoreBtn').addEventListener('click',function(){applyRestore($('obRestore').value,$('obErr'))});
+
+  $('nav').addEventListener('click',function(e){
+    var b=e.target.closest('button[data-tab]');if(b)setTab(b.getAttribute('data-tab'));
+  });
+  $('banner').addEventListener('click',function(e){
+    var b=e.target.closest('button[data-go]');if(b)setTab(b.getAttribute('data-go'));
+  });
+
+  $('tasks').addEventListener('click',function(e){
+    var b=e.target.closest('.task');if(!b)return;
+    var bit=+b.getAttribute('data-bit');
+    state.days[sel]=(state.days[sel]|0)^bit;
+    if(!state.days[sel])delete state.days[sel];
+    save();renderAll();
+    if((state.days[sel]|0)===15)toast('All four done. Strong day.');
+  });
+  $('note').addEventListener('input',function(){
+    var v=$('note').value.slice(0,300);
+    if(v)state.notes[sel]=v;else delete state.notes[sel];
+    save();
+  });
+  $('grid').addEventListener('click',function(e){
+    var b=e.target.closest('.cell');if(!b)return;
+    var d=+b.getAttribute('data-day');
+    if(d>todayIdx()){toast('Day '+d+' has not come yet.');return}
+    sel=d;follow=(d===curDay());noteFor=0;renderAll();
+  });
+  $('editChip').addEventListener('click',function(){
+    sel=curDay();follow=true;noteFor=0;renderAll();window.scrollTo(0,0);
+  });
+
+  $('modeToday').addEventListener('click',function(){shareMode='today';renderShare()});
+  $('modeAll').addEventListener('click',function(){shareMode='all';renderShare()});
+  $('shareCopy').addEventListener('click',function(){copyText($('shareBox').value,$('shareBox'),'Message copied.')});
+
+  $('codeCopy').addEventListener('click',function(){
+    renderBackup();
+    copyText($('codeBox').value,$('codeBox'),'Backup code copied. Paste it somewhere safe.',markBackup);
+  });
+  $('codeWa').addEventListener('click',function(){markBackup()});
+
+  $('restoreFile').addEventListener('change',function(){
+    var f=$('restoreFile').files&&$('restoreFile').files[0];if(!f)return;
+    var r=new FileReader();
+    r.onload=function(){$('restoreBox').value=String(r.result||'')};
+    r.onerror=function(){$('restoreErr').textContent='Could not read that file.'};
+    r.readAsText(f);
+  });
+  $('restoreBtn').addEventListener('click',function(){
+    var btn=$('restoreBtn');
+    if(!$('restoreBox').value.trim()){$('restoreErr').textContent='Paste a backup code first.';return}
+    armed(btn,'Tap again to replace my current data',function(){
+      if(applyRestore($('restoreBox').value,$('restoreErr')))$('restoreBox').value='';
+    });
+  });
+
+  $('renameBtn').addEventListener('click',function(){
+    var n=$('renameIn').value.trim();
+    if(!n){toast('Type a name first.');return}
+    state.name=n.slice(0,30);save();renderAll();toast('Name saved.');
+  });
+  $('resetBtn').addEventListener('click',function(){
+    armed($('resetBtn'),'Tap again to delete everything',function(){
+      state=null;
+      try{localStorage.removeItem(KEY)}catch(e){}
+      $('nameIn').value='';showOnboard();window.scrollTo(0,0);
+    });
+  });
+
+  document.addEventListener('visibilitychange',function(){
+    if(!document.hidden&&state&&!$('main').hidden){
+      if(follow){sel=curDay();noteFor=0}
+      renderAll();
+    }
+  });
+}
+
+/* ---------- start ---------- */
+probe();
+wire();
+state=load();
+if(state)showMain();else showOnboard();
+})();
+</script>
+
+</body></html>
